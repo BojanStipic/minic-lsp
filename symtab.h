@@ -4,11 +4,11 @@
 
 // Element in the symbol table
 typedef struct sym_entry {
-   char *   name;          // Symbol name
-   unsigned kind;          // Symbol kind
-   unsigned type;          // Symbol type
-   unsigned atr1;          // Additional symbol attribute
-   unsigned atr2;          // Additional symbol attribute
+  char *   name;          // Symbol name
+  unsigned kind;          // Symbol kind
+  unsigned type;          // Symbol type
+  unsigned atr1;          // Additional symbol attribute
+  unsigned atr2;          // Additional symbol attribute
 } SYMBOL_ENTRY;
 
 // Returns index of the first empty element.
