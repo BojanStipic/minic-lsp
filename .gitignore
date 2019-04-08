@@ -1,0 +1,8 @@
+/build/
+compile_commands.json
+/*.yy.c
+/*.tab.c
+/*.tab.h
+/.make.*
+/*.output
+minic-lsp
