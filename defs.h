@@ -12,7 +12,7 @@
 #define CHAR_BUFFER_LENGTH   128
 extern char char_buffer[CHAR_BUFFER_LENGTH];
 
-//pomocni makroi za ispis
+// Output macros
 extern void warning(char *s);
 extern int yyerror(char *s);
 #define err(args...)  sprintf(char_buffer, args), \
@@ -21,18 +21,17 @@ extern int yyerror(char *s);
                       warning(char_buffer)
 
 
-//tipovi podataka
+// Data types
 enum types { NO_TYPE, INT, UINT };
 
-//vrste simbola (moze ih biti maksimalno 32)
-enum kinds { NO_KIND = 0x1, REG = 0x2, LIT = 0x4, 
+// Kinds of symbols (maximum 32 different kinds)
+enum kinds { NO_KIND = 0x1, REG = 0x2, LIT = 0x4,
              FUN = 0x8, VAR = 0x10, PAR = 0x20 };
 
-//konstante arithmetickih operatora
+// Arithmetic operators
 enum arops { ADD, SUB, MUL, DIV, AROP_NUMBER };
 
-//konstante relacionih operatora
+// Relational operators
 enum relops { LT, GT, LE, GE, EQ, NE, RELOP_NUMBER };
 
 #endif
-

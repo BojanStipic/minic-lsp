@@ -2,34 +2,39 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
-// Element tabele simbola
+// Element in the symbol table
 typedef struct sym_entry {
-   char *   name;          // ime simbola
-   unsigned kind;          // vrsta simbola
-   unsigned type;          // tip vrednosti simbola
-   unsigned atr1;          // dodatni attribut simbola
-   unsigned atr2;          // dodatni attribut simbola
+   char *   name;          // Symbol name
+   unsigned kind;          // Symbol kind
+   unsigned type;          // Symbol type
+   unsigned atr1;          // Additional symbol attribute
+   unsigned atr2;          // Additional symbol attribute
 } SYMBOL_ENTRY;
 
-// Vraca indeks prvog sledeceg praznog elementa.
+// Returns index of the first empty element.
 int get_next_empty_element(void);
 
-// Vraca indeks poslednjeg zauzetog elementa.
+// Returns index of the last occupied element.
 int get_last_element(void);
 
-// Ubacuje novi simbol (jedan red u tabeli) 
-// i vraca indeks ubacenog elementa u tabeli simbola 
-// ili -1 u slucaju da nema slobodnog elementa u tabeli.
-int insert_symbol(char *name, unsigned kind, unsigned type, 
+/*
+ * Inserts a new symbol (1 row in the table),
+ * and returns index of the inserted element.
+ * Returns -1 if there is no empty space in the symbol table.
+ */
+int insert_symbol(char *name, unsigned kind, unsigned type,
                   unsigned atr1, unsigned atr2);
 
-// Ubacuje konstantu u tabelu simbola (ako vec ne postoji).
+// Inserts a literal into the symbol table (if it doesn't already exist).
 int insert_literal(char *str, unsigned type);
 
-// Vraca indeks pronadjenog simbola ili vraca -1.
+/*
+ * Returns index of the found element.
+ * If the element is not found, returns -1.
+ */
 int lookup_symbol(char *name, unsigned kind);
 
-// set i get metode za polja tabele simbola
+// Setters and getters for element fields.
 void     set_name(int index, char *name);
 char*    get_name(int index);
 void     set_kind(int index, unsigned kind);
@@ -41,17 +46,17 @@ unsigned get_atr1(int index);
 void     set_atr2(int index, unsigned atr2);
 unsigned get_atr2(int index);
 
-// Brise elemente tabele od zadatog indeksa
+// Removes elements beginning with the specified index.
 void clear_symbols(unsigned begin_index);
 
-// Brise sve elemente tabele simbola.
+// Removes all elements.
 void clear_symtab(void);
 
-// Ispisuje sve elemente tabele simbola.
+// Prints all elements.
 void print_symtab(void);
 unsigned logarithm2(unsigned value);
 
-// Inicijalizacija tabele simbola.
+// Initializes the table of symbols.
 void init_symtab(void);
 
 #endif

@@ -48,11 +48,11 @@
 
 program
   : function_list
-      {  
+      {
         int idx = lookup_symbol("main", FUN);
         if(idx == -1)
           err("undefined reference to 'main'");
-        else 
+        else
           if(get_type(idx) != INT)
             warn("return type of 'main' is not int");
       }
@@ -69,7 +69,7 @@ function
         fun_idx = lookup_symbol($2, FUN);
         if(fun_idx == -1)
           fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR);
-        else 
+        else
           err("redefinition of function '%s'", $2);
       }
     _LPAREN parameter _RPAREN body
@@ -110,7 +110,7 @@ variable
       {
         if(lookup_symbol($2, VAR|PAR) == -1)
            insert_symbol($2, VAR, $1, ++var_num, NO_ATR);
-        else 
+        else
            err("redefinition of '%s'", $2);
       }
   ;
@@ -174,7 +174,7 @@ literal
   ;
 
 function_call
-  : _ID 
+  : _ID
       {
         fcall_idx = lookup_symbol($1, FUN);
         if(fcall_idx == -1)
@@ -183,7 +183,7 @@ function_call
     _LPAREN argument _RPAREN
       {
         if(get_atr1(fcall_idx) != $4)
-          err("wrong number of args to function '%s'", 
+          err("wrong number of args to function '%s'",
               get_name(fcall_idx));
         set_type(FUN_REG, get_type(fcall_idx));
         $$ = FUN_REG;
@@ -195,7 +195,7 @@ argument
     { $$ = 0; }
 
   | num_exp
-    { 
+    {
       if(get_atr2(fcall_idx) != get_type($1))
         err("incompatible type for argument in '%s'",
             get_name(fcall_idx));
@@ -248,7 +248,7 @@ int main() {
   synerr = yyparse();
 
   clear_symtab();
-  
+
   if(warning_count)
     printf("\n%d warning(s).\n", warning_count);
 
@@ -260,4 +260,3 @@ int main() {
   else
     return error_count;
 }
-

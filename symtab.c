@@ -12,7 +12,7 @@ SYMBOL_ENTRY symbol_table[SYMBOL_TABLE_LENGTH];
 int first_empty = 0;
 
 
-// Vraca indeks prvog sledeceg praznog elementa.
+// Returns index of the first empty element.
 int get_next_empty_element(void) {
   if(first_empty < SYMBOL_TABLE_LENGTH)
     return first_empty++;
@@ -22,15 +22,17 @@ int get_next_empty_element(void) {
   }
 }
 
-// Vraca indeks poslednjeg zauzetog elementa.
+// Returns index of the last occupied element.
 int get_last_element(void) {
   return first_empty-1;
 }
 
-// Ubacuje simbol sa datom vrstom simbola i tipom simbola 
-// i vraca indeks ubacenog elementa u tabeli simbola 
-// ili -1 u slucaju da nema slobodnog elementa u tabeli.
-int insert_symbol(char *name, unsigned kind, unsigned type, 
+/*
+ * Inserts a new symbol (1 row in the table),
+ * and returns index of the inserted element.
+ * Returns -1 if there is no empty space in the symbol table.
+ */
+int insert_symbol(char *name, unsigned kind, unsigned type,
                   unsigned atr1, unsigned atr2){
   int index = get_next_empty_element();
   symbol_table[index].name = name;
@@ -41,29 +43,32 @@ int insert_symbol(char *name, unsigned kind, unsigned type,
   return index;
 }
 
-// Ubacuje konstantu u tabelu simbola (ako vec ne postoji).
+// Inserts a literal into the symbol table (if it doesn't already exist).
 int insert_literal(char *str, unsigned type) {
   int idx;
   for(idx = first_empty - 1; idx > FUN_REG; idx--) {
-    if(strcmp(symbol_table[idx].name, str) == 0 
+    if(strcmp(symbol_table[idx].name, str) == 0
        && symbol_table[idx].type == type)
        return idx;
   }
 
-  // provera opsega za konstante
+  // check literal range
   long int num = atol(str);
   if(((type==INT) && (num<INT_MIN || num>INT_MAX) )
-    || ((type==UINT) && (num<0 || num>UINT_MAX)) )  
+    || ((type==UINT) && (num<0 || num>UINT_MAX)) )
       err("literal out of range");
   idx = insert_symbol(str, LIT, type, NO_ATR, NO_ATR);
   return idx;
 }
 
-// Vraca indeks pronadjenog simbola ili vraca -1.
+/*
+ * Returns index of the found element.
+ * If the element is not found, returns -1.
+ */
 int lookup_symbol(char *name, unsigned kind) {
   int i;
   for(i = first_empty - 1; i > FUN_REG; i--) {
-    if(strcmp(symbol_table[i].name, name) == 0 
+    if(strcmp(symbol_table[i].name, name) == 0
        && symbol_table[i].kind & kind)
        return i;
   }
@@ -125,10 +130,10 @@ unsigned get_atr2(int index) {
   return NO_ATR;
 }
 
-// Brise elemente tabele od zadatog indeksa do kraja tabele
+// Removes elements beginning with the specified index.
 void clear_symbols(unsigned begin_index) {
   int i;
-  if(begin_index == first_empty) //nema sta da se brise 
+  if(begin_index == first_empty) // Already empty
     return;
   if(begin_index > first_empty) {
     err("Compiler error! Wrong clear symbols argument");
@@ -146,26 +151,26 @@ void clear_symbols(unsigned begin_index) {
   first_empty = begin_index;
 }
 
-// Brise sve elemente tabele simbola.
+// Removes all elements.
 void clear_symtab(void) {
   first_empty = SYMBOL_TABLE_LENGTH - 1;
   clear_symbols(0);
 }
-   
-// Ispisuje sve elemente tabele simbola.
+
+// Prints all elements.
 void print_symtab(void) {
-  static const char *symbol_kinds[] = { 
+  static const char *symbol_kinds[] = {
     "NONE", "REG", "LIT", "FUN", "VAR", "PAR" };
   int i,j;
   printf("\n\nSYMBOL TABLE\n");
   printf("\n       name           kind   type  atr1   atr2");
   printf("\n-- ---------------- -------- ----  -----  -----");
   for(i = 0; i < first_empty; i++) {
-    printf("\n%2d %-19s %-4s %4d  %4d  %4d ", i, 
-    symbol_table[i].name, 
-    symbol_kinds[(int)(logarithm2(symbol_table[i].kind))], 
-    symbol_table[i].type, 
-    symbol_table[i].atr1, 
+    printf("\n%2d %-19s %-4s %4d  %4d  %4d ", i,
+    symbol_table[i].name,
+    symbol_kinds[(int)(logarithm2(symbol_table[i].kind))],
+    symbol_table[i].type,
+    symbol_table[i].atr1,
     symbol_table[i].atr2);
   }
   printf("\n\n");
@@ -179,10 +184,10 @@ unsigned logarithm2(unsigned value) {
       return i;
     mask <<= 1;
   }
-  return 0; // ovo ne bi smelo; indeksiraj string "NONE"
+  return 0;
 }
 
-// Inicijalizacija tabele simbola.
+// Initializes the table of symbols.
 void init_symtab(void) {
   clear_symtab();
 
@@ -193,4 +198,3 @@ void init_symtab(void) {
     insert_symbol(strdup(s), REG, NO_TYPE, NO_ATR, NO_ATR);
   }
 }
-
