@@ -2,7 +2,7 @@
 
 %{
    #include <string.h>
-   #include "semantic.tab.h"
+   #include "minic.tab.h"
    #include "defs.h"
 %}
 
@@ -33,11 +33,11 @@
 "=="                 { yylval.i = EQ; return _RELOP; }
 "!="                 { yylval.i = NE; return _RELOP; }
 
-[a-zA-Z][a-zA-Z0-9]* { yylval.s = strdup(yytext); 
+[a-zA-Z][a-zA-Z0-9]* { yylval.s = strdup(yytext);
                        return _ID; }
-[+-]?[0-9]{1,10}     { yylval.s = strdup(yytext); 
+[+-]?[0-9]{1,10}     { yylval.s = strdup(yytext);
                        return _INT_NUMBER;}
-[0-9]{1,10}[uU]      { yylval.s = strdup(yytext); 
+[0-9]{1,10}[uU]      { yylval.s = strdup(yytext);
                        yylval.s[yyleng-1] = 0;
                        return _UINT_NUMBER;}
 
