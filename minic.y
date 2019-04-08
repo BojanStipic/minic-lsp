@@ -182,7 +182,7 @@ function_call
       }
     _LPAREN argument _RPAREN
       {
-        if(get_atr1(fcall_idx) != $4)
+        if(get_atr1(fcall_idx) != (unsigned int) $4)
           err("wrong number of args to function '%s'",
               get_name(fcall_idx));
         set_type(FUN_REG, get_type(fcall_idx));

@@ -131,7 +131,7 @@ unsigned get_atr2(int index) {
 }
 
 // Removes elements beginning with the specified index.
-void clear_symbols(unsigned begin_index) {
+void clear_symbols(int begin_index) {
   int i;
   if(begin_index == first_empty) // Already empty
     return;
@@ -161,7 +161,7 @@ void clear_symtab(void) {
 void print_symtab(void) {
   static const char *symbol_kinds[] = {
     "NONE", "REG", "LIT", "FUN", "VAR", "PAR" };
-  int i,j;
+  int i;
   printf("\n\nSYMBOL TABLE\n");
   printf("\n       name           kind   type  atr1   atr2");
   printf("\n-- ---------------- -------- ----  -----  -----");

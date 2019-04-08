@@ -15,9 +15,9 @@ extern char char_buffer[CHAR_BUFFER_LENGTH];
 // Output macros
 extern void warning(char *s);
 extern int yyerror(char *s);
-#define err(args...)  sprintf(char_buffer, args), \
+#define err(...)  sprintf(char_buffer, __VA_ARGS__), \
                       yyerror(char_buffer)
-#define warn(args...) sprintf(char_buffer, args), \
+#define warn(...) sprintf(char_buffer, __VA_ARGS__), \
                       warning(char_buffer)
 
 

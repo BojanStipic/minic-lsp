@@ -47,7 +47,7 @@ void     set_atr2(int index, unsigned atr2);
 unsigned get_atr2(int index);
 
 // Removes elements beginning with the specified index.
-void clear_symbols(unsigned begin_index);
+void clear_symbols(int begin_index);
 
 // Removes all elements.
 void clear_symtab(void);
