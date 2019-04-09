@@ -33,5 +33,13 @@ void lsp_send_response(int id, cJSON *result);
  * Response specifies language server's capabilities.
  */
 void lsp_initialize(int id);
+/*
+ * Parses LSP shutdown request, and sends a response.
+ */
+void lsp_shutdown(int id);
+/*
+ * Stops the language server.
+ */
+void lsp_exit();
 
 #endif

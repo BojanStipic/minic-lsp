@@ -78,6 +78,12 @@ void json_rpc(const cJSON *request) {
   if(strcmp(method, "initialize") == 0) {
     lsp_initialize(id);
   }
+  else if(strcmp(method, "shutdown") == 0) {
+    lsp_shutdown(id);
+  }
+  else if(strcmp(method, "exit") == 0) {
+    lsp_exit();
+  }
 }
 
 void lsp_send_response(int id, cJSON *result) {
@@ -107,4 +113,12 @@ void lsp_initialize(int id) {
 
   cJSON_AddItemToObject(result, "capabilities", capabilities);
   lsp_send_response(id, result);
+}
+
+void lsp_shutdown(int id) {
+  lsp_send_response(id, NULL);
+}
+
+void lsp_exit() {
+  exit(0);
 }
