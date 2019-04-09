@@ -24,4 +24,14 @@ void json_rpc(const cJSON *request);
  */
 void lsp_send_response(int id, cJSON *result);
 
+// **************
+// RPC functions:
+// **************
+
+/*
+ * Parses LSP initialize request, and sends a response accordingly.
+ * Response specifies language server's capabilities.
+ */
+void lsp_initialize(int id);
+
 #endif

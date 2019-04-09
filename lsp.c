@@ -74,6 +74,10 @@ void json_rpc(const cJSON *request) {
   }
   //const cJSON *params_json = cJSON_GetObjectItem(request, "params");
 
+  // RPC
+  if(strcmp(method, "initialize") == 0) {
+    lsp_initialize(id);
+  }
 }
 
 void lsp_send_response(int id, cJSON *result) {
@@ -89,4 +93,18 @@ void lsp_send_response(int id, cJSON *result) {
   fflush(stdout);
   free(output);
   cJSON_Delete(response);
+}
+
+// **************
+// RPC functions:
+// **************
+
+void lsp_initialize(int id) {
+  cJSON *result = cJSON_CreateObject();
+  cJSON *capabilities = cJSON_CreateObject();
+  cJSON_AddNumberToObject(capabilities, "textDocumentSync", 1);
+  // TODO add other capabilities
+
+  cJSON_AddItemToObject(result, "capabilities", capabilities);
+  lsp_send_response(id, result);
 }
