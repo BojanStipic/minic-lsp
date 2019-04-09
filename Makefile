@@ -4,9 +4,9 @@ SHELL = /bin/bash
 COMP = $(wildcard *.l)
 SRC = $(basename $(COMP))
 # Source files
-COMPILER_BUILD = lex.yy.c $(SRC).tab.c symtab.c
+COMPILER_BUILD = lex.yy.c $(SRC).tab.c symtab.c lsp.c
 # Compile dependencies
-COMPILER_DEPENDS = $(COMPILER_BUILD) defs.h symtab.h
+COMPILER_DEPENDS = $(COMPILER_BUILD) defs.h symtab.h lsp.h
 # Temporary files
 COMPILER_CLEAN = lex.yy.c $(SRC).tab.c $(SRC).tab.h $(SRC).output $(SRC)-lsp *.?~ *.mc~ .make.out* *.asm Makefile~
 # cJSON library

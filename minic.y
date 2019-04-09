@@ -2,6 +2,7 @@
   #include <stdio.h>
   #include "defs.h"
   #include "symtab.h"
+  #include "lsp.h"
 
   int yyparse(void);
   int yylex(void);
@@ -242,6 +243,8 @@ void warning(char *s) {
 }
 
 int main() {
+  lsp_event_loop();
+  /*
   int synerr;
   init_symtab();
 
@@ -259,4 +262,5 @@ int main() {
     return -1;
   else
     return error_count;
+  */
 }
