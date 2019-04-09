@@ -1,10 +1,17 @@
 # minic-lsp
 
-Language server implementation for the miniC programming language.
+[Language Server](https://langserver.org/) implementation for the miniC programming language.
 
 ## Features
 
 **TODO…**
+
+## What is Language Server Protocol?
+
+The Language Server Protocol is used between a tool (the client)
+and a language smartness provider (the server)
+to integrate features like auto complete, go to definition,
+find all references and alike into the tool.
 
 ## What is miniC?
 
@@ -19,7 +26,7 @@ Runtime dependencies:
 
 * cJSON
 
-Compile dependencies:
+Compile time dependencies:
 
 * flex
 * bison
@@ -43,9 +50,11 @@ make
 
 ## Clients
 
-* (https://github.com/BojanStipic/minic-lsp-ale)[Plugin] for Vim text editor.
-* (https://github.com/BojanStipic/minic-lsp-atom)[Plugin] for Atom text editor.
-* … and any other client listed (https://langserver.org/)[here], if you configure it to use minic-lsp.
+* [Plugin](https://github.com/BojanStipic/minic-lsp-ale) for [Vim](https://www.vim.org/)
+text editor with [ALE](https://github.com/w0rp/ale).
+* [Plugin](https://github.com/BojanStipic/minic-lsp-atom) for [Atom](https://atom.io/)
+text editor.
+* … and any other client listed [here](https://langserver.org/), if you configure it to use minic-lsp.
 
 ## License
 
