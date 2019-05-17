@@ -4,6 +4,7 @@
 #include <cjson/cJSON.h>
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
+void parse(cJSON *diagnostics, const char *text);
 
 void lsp_event_loop(void) {
   for(;;) {
@@ -178,5 +179,9 @@ void lsp_text_sync(const char *method, const cJSON *params_json) {
 }
 
 void lsp_lint(const char *uri, const char *text) {
-
+  cJSON *params = cJSON_CreateObject();
+  cJSON_AddStringToObject(params, "uri", uri);
+  cJSON *diagnostics = cJSON_AddArrayToObject(params, "diagnostics");
+  parse(diagnostics, text);
+  lsp_send_notification("textDocument/publishDiagnostics", params);
 }
