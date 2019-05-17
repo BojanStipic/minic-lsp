@@ -4,7 +4,8 @@
 
 ## Features
 
-**TODO…**
+* [x] Diagnostics
+* [ ] Code completion
 
 ## What is Language Server Protocol?
 
