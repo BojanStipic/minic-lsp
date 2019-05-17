@@ -6,11 +6,11 @@ typedef struct cJSON cJSON;
 /*
  * Main event loop.
  */
-void lsp_event_loop();
+void lsp_event_loop(void);
 /*
  * Parses message header and returns the content length.
  */
-unsigned long lsp_parse_header();
+unsigned long lsp_parse_header(void);
 /*
  * Converts message body of specified length to cJSON object.
  */
@@ -40,6 +40,6 @@ void lsp_shutdown(int id);
 /*
  * Stops the language server.
  */
-void lsp_exit();
+void lsp_exit(void);
 
 #endif

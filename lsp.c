@@ -5,7 +5,7 @@
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
 
-void lsp_event_loop() {
+void lsp_event_loop(void) {
   for(;;) {
     unsigned long content_length = lsp_parse_header();
     cJSON *request = lsp_parse_content(content_length);
@@ -14,7 +14,7 @@ void lsp_event_loop() {
   }
 }
 
-unsigned long lsp_parse_header() {
+unsigned long lsp_parse_header(void) {
   char buffer[MAX_HEADER_FIELD_LEN];
   unsigned long content_length = 0;
 
@@ -119,6 +119,6 @@ void lsp_shutdown(int id) {
   lsp_send_response(id, NULL);
 }
 
-void lsp_exit() {
+void lsp_exit(void) {
   exit(0);
 }
