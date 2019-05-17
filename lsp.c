@@ -55,10 +55,12 @@ cJSON* lsp_parse_content(unsigned long content_length) {
 
 void json_rpc(const cJSON *request) {
   // Logs for debugging
+  /*
   char *log_output = cJSON_Print(request);
   FILE *log = fopen("lsp.log", "a");
   fwrite(log_output, 1, strlen(log_output), log);
   fclose(log);
+  */
   // <== Logs for debugging
 
   const char *method;
@@ -98,6 +100,21 @@ void lsp_send_response(int id, cJSON *result) {
   cJSON_AddNumberToObject(response, "id", id);
   if(result != NULL)
     cJSON_AddItemToObject(response, "result", result);
+
+  char *output = cJSON_Print(response);
+  printf("Content-Length: %lu\r\n\r\n", strlen(output));
+  fwrite(output, 1, strlen(output), stdout);
+  fflush(stdout);
+  free(output);
+  cJSON_Delete(response);
+}
+
+void lsp_send_notification(const char *method, cJSON *params) {
+  cJSON *response = cJSON_CreateObject();
+  cJSON_AddStringToObject(response, "jsonrpc", "2.0");
+  cJSON_AddStringToObject(response, "method", method);
+  if(params != NULL)
+    cJSON_AddItemToObject(response, "params", params);
 
   char *output = cJSON_Print(response);
   printf("Content-Length: %lu\r\n\r\n", strlen(output));
