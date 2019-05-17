@@ -1,10 +1,6 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#define bool int
-#define TRUE  1
-#define FALSE 0
-
 #define SYMBOL_TABLE_LENGTH   64
 #define NO_ATR                 0
 #define LAST_WORKING_REG      12
@@ -13,13 +9,13 @@
 extern char char_buffer[CHAR_BUFFER_LENGTH];
 
 // Output macros
-extern void warning(char *s);
-extern int yyerror(char *s);
+int yyerror(const char *text);
+extern int severity;
 #define err(...)  sprintf(char_buffer, __VA_ARGS__), \
-                      yyerror(char_buffer)
+                      severity = ERROR, yyerror(char_buffer)
 #define warn(...) sprintf(char_buffer, __VA_ARGS__), \
-                      warning(char_buffer)
-
+                      severity = WARNING, yyerror(char_buffer)
+enum severity { ERROR = 1, WARNING, INFORMATION, HINT };
 
 // Data types
 enum types { NO_TYPE, INT, UINT };

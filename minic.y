@@ -1,18 +1,22 @@
 %{
   #include <stdio.h>
+  #include <stdbool.h>
   #include "defs.h"
   #include "symtab.h"
+  #include <cjson/cJSON.h>
   #include "lsp.h"
 
   int yyparse(void);
   int yylex(void);
-  int yyerror(char *s);
-  void warning(char *s);
+  int yyerror(const char *text);
+  typedef struct yy_buffer_state * YY_BUFFER_STATE;
+  YY_BUFFER_STATE yy_scan_string(const char *str);
+  void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
   extern int yylineno;
   char char_buffer[CHAR_BUFFER_LENGTH];
-  int error_count = 0;
-  int warning_count = 0;
+  cJSON *_diagnostics = NULL;
+  int severity;
   int var_num = 0;
   int fun_idx = -1;
   int fcall_idx = -1;
@@ -231,36 +235,43 @@ return_statement
 
 %%
 
-int yyerror(char *s) {
-  fprintf(stderr, "\nline %d: ERROR: %s", yylineno, s);
-  error_count++;
+int yyerror(const char *text) {
+  if(_diagnostics == NULL) {
+    return 0;
+  }
+  cJSON *diagnostic = cJSON_CreateObject();
+
+  // Range
+  cJSON *range = cJSON_AddObjectToObject(diagnostic, "range");
+  cJSON *start_position = cJSON_AddObjectToObject(range, "start");
+  cJSON_AddNumberToObject(start_position, "line", yylineno);
+  cJSON_AddNumberToObject(start_position, "character", 0);
+  cJSON *end_position = cJSON_AddObjectToObject(range, "end");
+  cJSON_AddNumberToObject(end_position, "line", yylineno + 1);
+  cJSON_AddNumberToObject(end_position, "character", 0);
+  // Severity
+  cJSON_AddNumberToObject(diagnostic, "severity", severity);
+  // Message
+  cJSON_AddStringToObject(diagnostic, "message", text);
+
+  cJSON_AddItemToArray(_diagnostics, diagnostic);
+
+  severity = ERROR;
   return 0;
 }
 
-void warning(char *s) {
-  fprintf(stderr, "\nline %d: WARNING: %s", yylineno, s);
-  warning_count++;
+void parse(cJSON *diagnostics, const char *text) {
+  _diagnostics = diagnostics;
+  init_symtab();
+  yylineno = 0;
+  YY_BUFFER_STATE buffer = yy_scan_string(text);
+  yyparse();
+  yy_delete_buffer(buffer);
+  clear_symtab();
+  _diagnostics = NULL;
 }
 
 int main() {
   lsp_event_loop();
-  /*
-  int synerr;
-  init_symtab();
-
-  synerr = yyparse();
-
-  clear_symtab();
-
-  if(warning_count)
-    printf("\n%d warning(s).\n", warning_count);
-
-  if(error_count)
-    printf("\n%d error(s).\n", error_count);
-
-  if(synerr)
-    return -1;
-  else
-    return error_count;
-  */
+  return 0;
 }
