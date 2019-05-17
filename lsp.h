@@ -41,5 +41,13 @@ void lsp_shutdown(int id);
  * Stops the language server.
  */
 void lsp_exit(void);
+/*
+ * Parses LSP text sync notifications and calls `lsp_lint`.
+ */
+void lsp_text_sync(const char *method, const cJSON *params_json);
+/*
+ * Runs a linter and returns LSP publish diagnostics notification.
+ */
+void lsp_lint(const char *uri, const char *text);
 
 #endif

@@ -65,14 +65,14 @@ void json_rpc(const cJSON *request) {
   int id;
 
   const cJSON *method_json = cJSON_GetObjectItem(request, "method");
-  if (cJSON_IsString(method_json) && (method_json->valuestring != NULL)) {
+  if(cJSON_IsString(method_json) && (method_json->valuestring != NULL)) {
     method = method_json->valuestring;
   }
   const cJSON *id_json = cJSON_GetObjectItem(request, "id");
-  if (cJSON_IsNumber(id_json)) {
+  if(cJSON_IsNumber(id_json)) {
     id = id_json->valueint;
   }
-  //const cJSON *params_json = cJSON_GetObjectItem(request, "params");
+  const cJSON *params_json = cJSON_GetObjectItem(request, "params");
 
   // RPC
   if(strcmp(method, "initialize") == 0) {
@@ -83,6 +83,12 @@ void json_rpc(const cJSON *request) {
   }
   else if(strcmp(method, "exit") == 0) {
     lsp_exit();
+  }
+  else if(strcmp(method, "textDocument/didOpen") == 0) {
+    lsp_text_sync("didOpen", params_json);
+  }
+  else if(strcmp(method, "textDocument/didChange") == 0) {
+    lsp_text_sync("didChange", params_json);
   }
 }
 
@@ -121,4 +127,39 @@ void lsp_shutdown(int id) {
 
 void lsp_exit(void) {
   exit(0);
+}
+
+void lsp_text_sync(const char *method, const cJSON *params_json) {
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  const char *uri = NULL;
+  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
+    uri = uri_json->valuestring;
+  }
+
+  const char *text = NULL;
+  if(strcmp(method, "didOpen") == 0) {
+    const cJSON *text_json = cJSON_GetObjectItem(text_document_json, "text");
+    if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
+      text = text_json->valuestring;
+    }
+  }
+  else if(strcmp(method, "didChange") == 0) {
+    const cJSON *content_changes_json = cJSON_GetObjectItem(params_json, "contentChanges");
+    const cJSON *content_change_json = cJSON_GetArrayItem(content_changes_json, 0);
+    const cJSON *text_json = cJSON_GetObjectItem(content_change_json, "text");
+    if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
+      text = text_json->valuestring;
+    }
+  }
+
+  if(uri == NULL || text == NULL) {
+    return;
+  }
+  lsp_lint(uri, text);
+}
+
+void lsp_lint(const char *uri, const char *text) {
+
 }
