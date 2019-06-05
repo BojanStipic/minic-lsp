@@ -1,6 +1,6 @@
 %{
   #include <stdio.h>
-  #include <stdbool.h>
+  #include <string.h>
   #include "defs.h"
   #include "symtab.h"
   #include <cjson/cJSON.h>
@@ -267,8 +267,20 @@ void parse(cJSON *diagnostics, const char *text) {
   YY_BUFFER_STATE buffer = yy_scan_string(text);
   yyparse();
   yy_delete_buffer(buffer);
-  clear_symtab();
   _diagnostics = NULL;
+}
+
+char* symbol_info(const char *symbol_name, const char *text) {
+  parse(NULL, text);
+  int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
+  const char *type = types_str[get_type(idx)];
+  const char *name = get_name(idx);
+
+  char *info = malloc(strlen(type) + strlen(name) + 2);
+  strcpy(info, type);
+  strcat(info, " ");
+  strcat(info, name);
+  return info;
 }
 
 int main() {
