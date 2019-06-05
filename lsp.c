@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <cjson/cJSON.h>
+#include "io.h"
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
 void parse(cJSON *diagnostics, const char *text);
@@ -192,39 +192,6 @@ void lsp_lint(const char *uri, const char *text) {
   lsp_send_notification("textDocument/publishDiagnostics", params);
 }
 
-char* read_to_string(const char *uri) {
-  // uri + 7 -> skips file://
-  FILE *f = fopen(uri + 7, "r");
-  fseek(f, 0, SEEK_END);
-  unsigned long fsize = ftell(f);
-  rewind(f);
-
-  char *text = malloc(fsize + 1);
-  if(text == NULL)
-    exit(2);
-  fread(text, 1, fsize, f);
-  fclose(f);
-
-  text[fsize] = '\0';
-  return text;
-}
-
-const char* truncate_string(char *text, int line, int character) {
-  int position = 0;
-  for(int i = 0; i < line; i++) {
-    position += strcspn(text + position, "\n") + 1;
-  }
-  position += character;
-  int id_begin = position;
-
-  while(isalnum(*(text + position))) {
-    ++position;
-  }
-  text[position] = '\0';
-
-  return text + id_begin;
-}
-
 void lsp_hover(int id, const cJSON *params_json) {
   const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
   const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
@@ -246,7 +213,8 @@ void lsp_hover(int id, const cJSON *params_json) {
   }
 
   char *text = read_to_string(uri);
-  const char *symbol_name  = truncate_string(text, line, character);
+  truncate_string(text, line, character);
+  const char *symbol_name  = extract_last_symbol(text);
   char *contents = symbol_info(symbol_name, text);
   free(text);
 

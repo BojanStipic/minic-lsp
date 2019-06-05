@@ -27,6 +27,7 @@ executable(
   pfiles,
   'symtab.c',
   'lsp.c',
+  'io.c',
   dependencies : [ dependency('libcjson') ],
   install : true
 )
