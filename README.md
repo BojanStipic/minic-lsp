@@ -5,7 +5,9 @@
 ## Features
 
 * [x] Diagnostics
+* [x] Hover information
 * [ ] Code completion
+* [ ] Go to definition
 
 ## What is Language Server Protocol?
 
