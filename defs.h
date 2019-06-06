@@ -19,6 +19,7 @@ enum severity { ERROR = 1, WARNING, INFORMATION, HINT };
 
 // Data types
 enum types { NO_TYPE, INT, UINT };
+static const char *types_str[] = { "void", "int", "unsigned int" };
 
 // Kinds of symbols (maximum 32 different kinds)
 enum kinds { NO_KIND = 0x1, REG = 0x2, LIT = 0x4,

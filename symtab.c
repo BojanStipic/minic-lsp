@@ -65,7 +65,7 @@ int insert_literal(char *str, unsigned type) {
  * Returns index of the found element.
  * If the element is not found, returns -1.
  */
-int lookup_symbol(char *name, unsigned kind) {
+int lookup_symbol(const char *name, unsigned kind) {
   int i;
   for(i = first_empty - 1; i > FUN_REG; i--) {
     if(strcmp(symbol_table[i].name, name) == 0

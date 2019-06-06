@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cjson/cJSON.h>
+#include "io.h"
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
 void parse(cJSON *diagnostics, const char *text);
+char* symbol_info(const char *symbol_name, const char *text);
 
 void lsp_event_loop(void) {
   for(;;) {
@@ -93,6 +95,9 @@ void json_rpc(const cJSON *request) {
   else if(strcmp(method, "textDocument/didChange") == 0) {
     lsp_text_sync("didChange", params_json);
   }
+  else if(strcmp(method, "textDocument/hover") == 0) {
+    lsp_hover(id, params_json);
+  }
 }
 
 void lsp_send_response(int id, cJSON *result) {
@@ -133,6 +138,7 @@ void lsp_initialize(int id) {
   cJSON *result = cJSON_CreateObject();
   cJSON *capabilities = cJSON_CreateObject();
   cJSON_AddNumberToObject(capabilities, "textDocumentSync", 1);
+  cJSON_AddBoolToObject(capabilities, "hoverProvider", 1);
   // TODO add other capabilities
 
   cJSON_AddItemToObject(result, "capabilities", capabilities);
@@ -184,4 +190,35 @@ void lsp_lint(const char *uri, const char *text) {
   cJSON *diagnostics = cJSON_AddArrayToObject(params, "diagnostics");
   parse(diagnostics, text);
   lsp_send_notification("textDocument/publishDiagnostics", params);
+}
+
+void lsp_hover(int id, const cJSON *params_json) {
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  const char *uri = NULL;
+  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
+    uri = uri_json->valuestring;
+  }
+
+  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
+  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
+  int line;
+  if(cJSON_IsNumber(line_json)) {
+    line = line_json->valueint;
+  }
+  int character;
+  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
+  if(cJSON_IsNumber(character_json)) {
+    character = character_json->valueint;
+  }
+
+  char *text = read_to_string(uri);
+  truncate_string(text, line, character);
+  const char *symbol_name  = extract_last_symbol(text);
+  char *contents = symbol_info(symbol_name, text);
+  free(text);
+
+  cJSON *result = cJSON_CreateObject();
+  cJSON_AddStringToObject(result, "contents", contents);
+  lsp_send_response(id, result);
 }
