@@ -9,6 +9,7 @@ typedef struct sym_entry {
   unsigned type;          // Symbol type
   unsigned atr1;          // Additional symbol attribute
   unsigned atr2;          // Additional symbol attribute
+  int lineno;             // Line number where the symbol was defined
 } SYMBOL_ENTRY;
 
 // Returns index of the first empty element.
@@ -22,8 +23,12 @@ int get_last_element(void);
  * and returns index of the inserted element.
  * Returns -1 if there is no empty space in the symbol table.
  */
-int insert_symbol(char *name, unsigned kind, unsigned type,
-                  unsigned atr1, unsigned atr2);
+int insert_symbol(char *name,
+    unsigned kind,
+    unsigned type,
+    unsigned atr1,
+    unsigned atr2,
+    int lineno);
 
 // Inserts a literal into the symbol table (if it doesn't already exist).
 int insert_literal(char *str, unsigned type);
@@ -45,6 +50,8 @@ void     set_atr1(int index, unsigned atr1);
 unsigned get_atr1(int index);
 void     set_atr2(int index, unsigned atr2);
 unsigned get_atr2(int index);
+void     set_lineno(int index, int lineno);
+int      get_lineno(int index);
 
 // Removes elements beginning with the specified index.
 void clear_symbols(int begin_index);

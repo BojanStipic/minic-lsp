@@ -73,7 +73,7 @@ function
       {
         fun_idx = lookup_symbol($2, FUN);
         if(fun_idx == -1)
-          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR);
+          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, yylineno);
         else
           err("redefinition of function '%s'", $2);
       }
@@ -95,7 +95,7 @@ parameter
 
   | type _ID
       {
-        insert_symbol($2, PAR, $1, 1, NO_ATR);
+        insert_symbol($2, PAR, $1, 1, NO_ATR, yylineno);
         set_atr1(fun_idx, 1);
         set_atr2(fun_idx, $1);
       }
@@ -114,7 +114,7 @@ variable
   : type _ID _SEMICOLON
       {
         if(lookup_symbol($2, VAR|PAR) == -1)
-           insert_symbol($2, VAR, $1, ++var_num, NO_ATR);
+           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, yylineno);
         else
            err("redefinition of '%s'", $2);
       }
