@@ -283,6 +283,12 @@ char* symbol_info(const char *symbol_name, const char *text) {
   return info;
 }
 
+int symbol_location(const char *symbol_name, const char *text) {
+  parse(NULL, text);
+  int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
+  return get_lineno(idx);
+}
+
 int main() {
   lsp_event_loop();
   return 0;
