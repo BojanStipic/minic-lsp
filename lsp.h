@@ -53,5 +53,9 @@ void lsp_lint(const char *uri, const char *text);
  * Parses LSP hover request, and returns hover information.
  */
 void lsp_hover(int id, const cJSON *params_json);
+/*
+ * Parses LSP definition request, and returns jump position.
+ */
+void lsp_goto_definition(int id, const cJSON *params_json);
 
 #endif
