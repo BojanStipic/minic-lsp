@@ -14,4 +14,4 @@ void truncate_string(char *text, int line, int character);
  */
 const char* extract_last_symbol(char *text);
 
-#endif
+#endif /* end of include guard: IO_H */

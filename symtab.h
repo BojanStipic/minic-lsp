@@ -1,4 +1,3 @@
-
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
@@ -66,4 +65,4 @@ unsigned logarithm2(unsigned value);
 // Initializes the table of symbols.
 void init_symtab(void);
 
-#endif
+#endif /* end of include guard: SYMTAB_H */

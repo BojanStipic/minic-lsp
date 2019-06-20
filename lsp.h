@@ -58,4 +58,4 @@ void lsp_hover(int id, const cJSON *params_json);
  */
 void lsp_goto_definition(int id, const cJSON *params_json);
 
-#endif
+#endif /* end of include guard: LSP_H */

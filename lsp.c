@@ -3,11 +3,9 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 #include "io.h"
+#include "minic.h"
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
-void parse(cJSON *diagnostics, const char *text);
-char* symbol_info(const char *symbol_name, const char *text);
-int symbol_location(const char *symbol_name, const char *text);
 
 void lsp_event_loop(void) {
   for(;;) {

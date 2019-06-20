@@ -23,8 +23,10 @@ pfiles = pgen.process('minic.y')
 
 executable(
   'minic-lsp',
+  'main.c',
   lfiles,
   pfiles,
+  'minic.c',
   'symtab.c',
   'lsp.c',
   'io.c',

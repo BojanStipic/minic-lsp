@@ -11,16 +11,15 @@ extern char char_buffer[CHAR_BUFFER_LENGTH];
 
 // Output macros
 int yyerror(const char *text);
+enum severity { ERROR = 1, WARNING, INFORMATION, HINT };
 extern int severity;
 #define err(...)  sprintf(char_buffer, __VA_ARGS__), \
                       severity = ERROR, yyerror(char_buffer)
 #define warn(...) sprintf(char_buffer, __VA_ARGS__), \
                       severity = WARNING, yyerror(char_buffer)
-enum severity { ERROR = 1, WARNING, INFORMATION, HINT };
 
 // Data types
 enum types { NO_TYPE, INT, UINT };
-static const char *types_str[] = { "void", "int", "unsigned int" };
 
 // Kinds of symbols (maximum 32 different kinds)
 enum kinds { NO_KIND = 0x1, REG = 0x2, LIT = 0x4,
@@ -32,4 +31,4 @@ enum arops { ADD, SUB, MUL, DIV, AROP_NUMBER };
 // Relational operators
 enum relops { LT, GT, LE, GE, EQ, NE, RELOP_NUMBER };
 
-#endif
+#endif /* end of include guard: DEFS_H */

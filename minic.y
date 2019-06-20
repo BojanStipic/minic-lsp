@@ -1,22 +1,12 @@
 %{
   #include <stdio.h>
-  #include <string.h>
   #include "defs.h"
   #include "symtab.h"
-  #include <cjson/cJSON.h>
-  #include "lsp.h"
-
-  int yyparse(void);
-  int yylex(void);
-  int yyerror(const char *text);
-  typedef struct yy_buffer_state * YY_BUFFER_STATE;
-  YY_BUFFER_STATE yy_scan_string(const char *str);
-  void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
   extern int yylineno;
-  char char_buffer[CHAR_BUFFER_LENGTH];
-  cJSON *_diagnostics = NULL;
-  int severity;
+  int yylex(void);
+  int yyerror(const char *text);
+
   int var_num = 0;
   int fun_idx = -1;
   int fcall_idx = -1;
@@ -234,62 +224,3 @@ return_statement
   ;
 
 %%
-
-int yyerror(const char *text) {
-  if(_diagnostics == NULL) {
-    return 0;
-  }
-  cJSON *diagnostic = cJSON_CreateObject();
-
-  // Range
-  cJSON *range = cJSON_AddObjectToObject(diagnostic, "range");
-  cJSON *start_position = cJSON_AddObjectToObject(range, "start");
-  cJSON_AddNumberToObject(start_position, "line", yylineno);
-  cJSON_AddNumberToObject(start_position, "character", 0);
-  cJSON *end_position = cJSON_AddObjectToObject(range, "end");
-  cJSON_AddNumberToObject(end_position, "line", yylineno + 1);
-  cJSON_AddNumberToObject(end_position, "character", 0);
-  // Severity
-  cJSON_AddNumberToObject(diagnostic, "severity", severity);
-  // Message
-  cJSON_AddStringToObject(diagnostic, "message", text);
-
-  cJSON_AddItemToArray(_diagnostics, diagnostic);
-
-  severity = ERROR;
-  return 0;
-}
-
-void parse(cJSON *diagnostics, const char *text) {
-  _diagnostics = diagnostics;
-  init_symtab();
-  yylineno = 0;
-  YY_BUFFER_STATE buffer = yy_scan_string(text);
-  yyparse();
-  yy_delete_buffer(buffer);
-  _diagnostics = NULL;
-}
-
-char* symbol_info(const char *symbol_name, const char *text) {
-  parse(NULL, text);
-  int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
-  const char *type = types_str[get_type(idx)];
-  const char *name = get_name(idx);
-
-  char *info = malloc(strlen(type) + strlen(name) + 2);
-  strcpy(info, type);
-  strcat(info, " ");
-  strcat(info, name);
-  return info;
-}
-
-int symbol_location(const char *symbol_name, const char *text) {
-  parse(NULL, text);
-  int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
-  return get_lineno(idx);
-}
-
-int main() {
-  lsp_event_loop();
-  return 0;
-}

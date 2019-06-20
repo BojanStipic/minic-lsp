@@ -1,6 +1,7 @@
 %option noyywrap yylineno
 
 %{
+  #include <stdio.h>
   #include <string.h>
   #include "minic.tab.h"
   #include "defs.h"
