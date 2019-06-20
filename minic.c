@@ -57,11 +57,22 @@ char* symbol_info(const char *symbol_name, const char *text) {
   int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
   const char *type = types_str[get_type(idx)];
   const char *name = get_name(idx);
+  const char *par_type = "";
+  if(get_kind(idx) == FUN) {
+    if(get_atr1(idx) == 1) {
+      par_type = types_str[get_atr2(idx)];
+    }
+  }
 
-  char *info = malloc(strlen(type) + strlen(name) + 2);
+  char *info = malloc(strlen(type) + strlen(name) + strlen(par_type) + 4);
   strcpy(info, type);
   strcat(info, " ");
   strcat(info, name);
+  if(get_kind(idx) == FUN) {
+    strcat(info, "(");
+    strcat(info, par_type);
+    strcat(info, ")");
+  }
   return info;
 }
 
