@@ -55,6 +55,9 @@ void parse(cJSON *diagnostics, const char *text) {
 char* symbol_info(const char *symbol_name, const char *text) {
   parse(NULL, text);
   int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
+  if(idx == -1) {
+    return NULL;
+  }
   const char *type = types_str[get_type(idx)];
   const char *name = get_name(idx);
   const char *par_type = "";

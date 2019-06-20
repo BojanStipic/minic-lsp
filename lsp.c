@@ -221,6 +221,10 @@ void lsp_hover(int id, const cJSON *params_json) {
   char *contents = symbol_info(symbol_name, text);
   free(text);
 
+  if(contents == NULL) {
+    lsp_send_response(id, NULL);
+    return;
+  }
   cJSON *result = cJSON_CreateObject();
   cJSON_AddStringToObject(result, "contents", contents);
   lsp_send_response(id, result);
