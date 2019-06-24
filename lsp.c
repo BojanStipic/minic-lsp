@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cjson/cJSON.h>
-#include "io.h"
 #include "minic.h"
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
@@ -89,10 +87,13 @@ void json_rpc(const cJSON *request) {
     lsp_exit();
   }
   else if(strcmp(method, "textDocument/didOpen") == 0) {
-    lsp_text_sync("didOpen", params_json);
+    lsp_sync_open(params_json);
   }
   else if(strcmp(method, "textDocument/didChange") == 0) {
-    lsp_text_sync("didChange", params_json);
+    lsp_sync_change(params_json);
+  }
+  else if(strcmp(method, "textDocument/didClose") == 0) {
+    lsp_sync_close(params_json);
   }
   else if(strcmp(method, "textDocument/hover") == 0) {
     lsp_hover(id, params_json);
@@ -162,7 +163,7 @@ void lsp_exit(void) {
   exit(0);
 }
 
-void lsp_text_sync(const char *method, const cJSON *params_json) {
+void lsp_sync_open(const cJSON *params_json) {
   const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
 
   const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
@@ -172,32 +173,74 @@ void lsp_text_sync(const char *method, const cJSON *params_json) {
   }
 
   const char *text = NULL;
-  if(strcmp(method, "didOpen") == 0) {
-    const cJSON *text_json = cJSON_GetObjectItem(text_document_json, "text");
-    if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
-      text = text_json->valuestring;
-    }
-  }
-  else if(strcmp(method, "didChange") == 0) {
-    const cJSON *content_changes_json = cJSON_GetObjectItem(params_json, "contentChanges");
-    const cJSON *content_change_json = cJSON_GetArrayItem(content_changes_json, 0);
-    const cJSON *text_json = cJSON_GetObjectItem(content_change_json, "text");
-    if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
-      text = text_json->valuestring;
-    }
+  const cJSON *text_json = cJSON_GetObjectItem(text_document_json, "text");
+  if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
+    text = text_json->valuestring;
   }
 
   if(uri == NULL || text == NULL) {
     return;
   }
-  lsp_lint(uri, text);
+
+  Buffer buffer = open_buffer(uri, text);
+  lsp_lint(buffer);
 }
 
-void lsp_lint(const char *uri, const char *text) {
+void lsp_sync_change(const cJSON *params_json) {
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  const char *uri = NULL;
+  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
+    uri = uri_json->valuestring;
+  }
+
+  const char *text = NULL;
+  const cJSON *content_changes_json = cJSON_GetObjectItem(params_json, "contentChanges");
+  const cJSON *content_change_json = cJSON_GetArrayItem(content_changes_json, 0);
+  const cJSON *text_json = cJSON_GetObjectItem(content_change_json, "text");
+  if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
+    text = text_json->valuestring;
+  }
+
+  if(uri == NULL || text == NULL) {
+    return;
+  }
+
+  Buffer buffer = update_buffer(uri, text);
+  lsp_lint(buffer);
+}
+
+void lsp_sync_close(const cJSON *params_json) {
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  const char *uri = NULL;
+  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
+    uri = uri_json->valuestring;
+  }
+
+  if(uri == NULL) {
+    return;
+  }
+
+  close_buffer(uri);
+  lsp_lint_clear(uri);
+}
+
+void lsp_lint(Buffer buffer) {
+  cJSON *params = cJSON_CreateObject();
+  cJSON *uri = cJSON_CreateStringReference(buffer.uri);
+  cJSON_AddItemToObject(params, "uri", uri);
+  cJSON *diagnostics = cJSON_AddArrayToObject(params, "diagnostics");
+  parse(diagnostics, buffer.content);
+  lsp_send_notification("textDocument/publishDiagnostics", params);
+}
+
+void lsp_lint_clear(const char *uri) {
   cJSON *params = cJSON_CreateObject();
   cJSON_AddStringToObject(params, "uri", uri);
-  cJSON *diagnostics = cJSON_AddArrayToObject(params, "diagnostics");
-  parse(diagnostics, text);
+  cJSON_AddArrayToObject(params, "diagnostics");
   lsp_send_notification("textDocument/publishDiagnostics", params);
 }
 
@@ -221,7 +264,8 @@ void lsp_hover(int id, const cJSON *params_json) {
     character = character_json->valueint;
   }
 
-  char *text = read_to_string(uri);
+  Buffer buffer = get_buffer(uri);
+  char *text = strdup(buffer.content);
   truncate_string(text, line, character);
   const char *symbol_name  = extract_last_symbol(text);
   char *contents = symbol_info(symbol_name, text);
@@ -256,7 +300,8 @@ void lsp_goto_definition(int id, const cJSON *params_json) {
     character = character_json->valueint;
   }
 
-  char *text = read_to_string(uri);
+  Buffer buffer = get_buffer(uri);
+  char *text = strdup(buffer.content);
   truncate_string(text, line, character);
   const char *symbol_name  = extract_last_symbol(text);
   int jump_line = symbol_location(symbol_name, text);
@@ -298,7 +343,8 @@ void lsp_completion(int id, const cJSON *params_json) {
     character = character_json->valueint;
   }
 
-  char *text = read_to_string(uri);
+  Buffer buffer = get_buffer(uri);
+  char *text = strdup(buffer.content);
   truncate_string(text, line, character);
   const char *symbol_name_part  = extract_last_symbol(text);
   cJSON *result = symbol_completion(symbol_name_part, text);

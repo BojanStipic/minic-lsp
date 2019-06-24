@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <cjson/cJSON.h>
 #include "defs.h"
 #include "symtab.h"
 #include "minic.h"

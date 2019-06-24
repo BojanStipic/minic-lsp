@@ -1,7 +1,8 @@
 #ifndef LSP_H
 #define LSP_H
 
-typedef struct cJSON cJSON;
+#include <cjson/cJSON.h>
+#include "io.h"
 
 /*
  * Main event loop.
@@ -42,13 +43,19 @@ void lsp_shutdown(int id);
  */
 void lsp_exit(void);
 /*
- * Parses LSP text sync notifications and calls `lsp_lint`.
+ * Parses LSP text sync notifications, and updates buffers and diagnostics.
  */
-void lsp_text_sync(const char *method, const cJSON *params_json);
+void lsp_sync_open(const cJSON *params_json);
+void lsp_sync_change(const cJSON *params_json);
+void lsp_sync_close(const cJSON *params_json);
 /*
  * Runs a linter and returns LSP publish diagnostics notification.
  */
-void lsp_lint(const char *uri, const char *text);
+void lsp_lint(Buffer buffer);
+/*
+ * Clears diagnostics for a file with specified `uri`.
+ */
+void lsp_lint_clear(const char *uri);
 /*
  * Parses LSP hover request, and returns hover information.
  */

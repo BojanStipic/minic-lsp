@@ -1,7 +1,7 @@
 #ifndef MINIC_H
 #define MINIC_H
 
-typedef struct cJSON cJSON;
+#include <cjson/cJSON.h>
 
 /*
  * Parse the `text` string and fill `diagnostics`.

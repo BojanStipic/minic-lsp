@@ -1,10 +1,29 @@
 #ifndef IO_H
 #define IO_H
 
+#define BUFFER_LENGTH 100
+typedef struct Buffer {
+	char *uri;
+	char *content;
+} Buffer;
+
 /*
- * Reads the entire contents of a file into a string.
+ * Opens a new buffer.
  */
-char* read_to_string(const char *uri);
+Buffer open_buffer(const char *uri, const char *content);
+/*
+ * Updates content of an existing buffer.
+ */
+Buffer update_buffer(const char *uri, const char *content);
+/*
+ * Searches a buffer by `uri` and returns its handle.
+ */
+Buffer get_buffer(const char *uri);
+/*
+ * Closes a buffer.
+ */
+void close_buffer(const char *uri);
+
 /*
  * Truncates a given string to the specified length.
  */
