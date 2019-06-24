@@ -38,6 +38,14 @@ int insert_literal(char *str, unsigned type);
  */
 int lookup_symbol(const char *name, unsigned kind);
 
+/*
+ * Searches for symbols which names start with `name_part`.
+ * Indices of matching elements are pushed to the `results` array.
+ *
+ * Return value is number of elements found.
+ */
+int lookup_starts_with(int *results, const char *name_part);
+
 // Setters and getters for element fields.
 void     set_name(int index, char *name);
 char*    get_name(int index);

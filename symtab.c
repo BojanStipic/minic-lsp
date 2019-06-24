@@ -80,6 +80,19 @@ int lookup_symbol(const char *name, unsigned kind) {
   return -1;
 }
 
+int lookup_starts_with(int *results, const char *name_part) {
+  int found_num = 0;
+  int i;
+  for(i = first_empty - 1; i > FUN_REG; i--) {
+    const char *symbol_name = symbol_table[i].name;
+    if(strstr(symbol_name, name_part) == symbol_name) {
+      results[found_num] = i;
+      ++found_num;
+    }
+  }
+  return found_num;
+}
+
 void set_name(int index, char *name) {
   if(index > -1 && index < SYMBOL_TABLE_LENGTH)
     symbol_table[index].name = name;
