@@ -18,5 +18,9 @@ char* symbol_info(const char *symbol_name, const char *text);
  * Parse the `text` string and return definition location of the specified symbol.
  */
 int symbol_location(const char *symbol_name, const char *text);
+/*
+ * Parse the `text` string and return all completions for the specified symbol.
+ */
+cJSON* symbol_completion(const char *symbol_name_part, const char *text);
 
 #endif /* end of include guard: MINIC_H */

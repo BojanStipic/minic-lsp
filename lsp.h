@@ -57,5 +57,9 @@ void lsp_hover(int id, const cJSON *params_json);
  * Parses LSP definition request, and returns jump position.
  */
 void lsp_goto_definition(int id, const cJSON *params_json);
+/*
+ * Parses LSP completion request, and returns completion results.
+ */
+void lsp_completion(int id, const cJSON *params_json);
 
 #endif /* end of include guard: LSP_H */

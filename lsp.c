@@ -100,6 +100,9 @@ void json_rpc(const cJSON *request) {
   else if(strcmp(method, "textDocument/definition") == 0) {
     lsp_goto_definition(id, params_json);
   }
+  else if(strcmp(method, "textDocument/completion") == 0) {
+    lsp_completion(id, params_json);
+  }
 }
 
 void lsp_send_response(int id, cJSON *result) {
@@ -142,6 +145,9 @@ void lsp_initialize(int id) {
   cJSON_AddNumberToObject(capabilities, "textDocumentSync", 1);
   cJSON_AddBoolToObject(capabilities, "hoverProvider", 1);
   cJSON_AddBoolToObject(capabilities, "definitionProvider", 1);
+  cJSON *completion = cJSON_AddObjectToObject(capabilities, "completionProvider");
+  cJSON_AddBoolToObject(completion, "resolveProvider", 0);
+
   // TODO add other capabilities
 
   cJSON_AddItemToObject(result, "capabilities", capabilities);
@@ -269,5 +275,34 @@ void lsp_goto_definition(int id, const cJSON *params_json) {
   cJSON *end_position = cJSON_AddObjectToObject(range, "end");
   cJSON_AddNumberToObject(end_position, "line", jump_line);
   cJSON_AddNumberToObject(end_position, "character", 0);
+  lsp_send_response(id, result);
+}
+
+void lsp_completion(int id, const cJSON *params_json) {
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  const char *uri = NULL;
+  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
+    uri = uri_json->valuestring;
+  }
+
+  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
+  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
+  int line;
+  if(cJSON_IsNumber(line_json)) {
+    line = line_json->valueint;
+  }
+  int character;
+  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
+  if(cJSON_IsNumber(character_json)) {
+    character = character_json->valueint;
+  }
+
+  char *text = read_to_string(uri);
+  truncate_string(text, line, character);
+  const char *symbol_name_part  = extract_last_symbol(text);
+  cJSON *result = symbol_completion(symbol_name_part, text);
+  free(text);
+
   lsp_send_response(id, result);
 }

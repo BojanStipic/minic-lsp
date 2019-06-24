@@ -84,3 +84,18 @@ int symbol_location(const char *symbol_name, const char *text) {
   int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
   return get_lineno(idx);
 }
+
+cJSON* symbol_completion(const char *symbol_name_part, const char *text) {
+  parse(NULL, text);
+  int indices[SYMBOL_TABLE_LENGTH];
+  int indices_num = lookup_starts_with(indices, symbol_name_part);
+
+  cJSON *results = cJSON_CreateArray();
+  for(int i = 0; i < indices_num; i++) {
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddStringToObject(item, "label", get_name(indices[i]));
+    //cJSON_AddStringToObject(item, "detail", "");
+    cJSON_AddItemToArray(results, item);
+  }
+  return results;
+}
