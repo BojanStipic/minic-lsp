@@ -6,7 +6,7 @@
 
 * [x] Diagnostics
 * [x] Hover information
-* [ ] Code completion
+* [x] Code completion
 * [x] Go to definition
 
 ## What is Language Server Protocol?
