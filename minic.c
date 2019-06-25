@@ -12,7 +12,6 @@ void yy_delete_buffer(YY_BUFFER_STATE buffer);
 
 char char_buffer[CHAR_BUFFER_LENGTH];
 int severity = ERROR;
-const char *types_str[] = { "void", "int", "unsigned int" };
 
 cJSON *_diagnostics = NULL;
 
@@ -51,30 +50,15 @@ void parse(cJSON *diagnostics, const char *text) {
   _diagnostics = NULL;
 }
 
-char* symbol_info(const char *symbol_name, const char *text) {
+cJSON* symbol_info(const char *symbol_name, const char *text) {
   parse(NULL, text);
   int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
   if(idx == -1) {
     return NULL;
   }
-  const char *type = types_str[get_type(idx)];
-  const char *name = get_name(idx);
-  const char *par_type = "";
-  if(get_kind(idx) == FUN) {
-    if(get_atr1(idx) == 1) {
-      par_type = types_str[get_atr2(idx)];
-    }
-  }
-
-  char *info = malloc(strlen(type) + strlen(name) + strlen(par_type) + 4);
-  strcpy(info, type);
-  strcat(info, " ");
-  strcat(info, name);
-  if(get_kind(idx) == FUN) {
-    strcat(info, "(");
-    strcat(info, par_type);
-    strcat(info, ")");
-  }
+  char *display = get_display(idx);
+  cJSON *info = cJSON_CreateString(display);
+  free(display);
   return info;
 }
 
@@ -93,7 +77,9 @@ cJSON* symbol_completion(const char *symbol_name_part, const char *text) {
   for(int i = 0; i < indices_num; i++) {
     cJSON *item = cJSON_CreateObject();
     cJSON_AddStringToObject(item, "label", get_name(indices[i]));
-    //cJSON_AddStringToObject(item, "detail", "");
+    char *detail = get_display(indices[i]);
+    cJSON_AddStringToObject(item, "detail", detail);
+    free(detail);
     cJSON_AddItemToArray(results, item);
   }
   return results;

@@ -68,8 +68,7 @@ int lookup_symbol(const char *name, unsigned kind) {
 
 int lookup_starts_with(int *results, const char *name_part) {
   int found_num = 0;
-  int i;
-  for(i = first_empty - 1; i > FUN_REG; i--) {
+  for(int i = first_empty - 1; i > FUN_REG; i--) {
     const char *symbol_name = symbol_table[i].name;
     if(strstr(symbol_name, name_part) == symbol_name) {
       results[found_num] = i;
@@ -143,6 +142,30 @@ int get_lineno(int index) {
   if(index > -1 && index < SYMBOL_TABLE_LENGTH)
     return symbol_table[index].lineno;
   return NO_LINENO;
+}
+
+char* get_display(int index) {
+  const char *types_str[] = { "void", "int", "unsigned int" };
+
+  const char *type = types_str[get_type(index)];
+  const char *name = get_name(index);
+  const char *par_type = "";
+  if(get_kind(index) == FUN) {
+    if(get_atr1(index) == 1) {
+      par_type = types_str[get_atr2(index)];
+    }
+  }
+
+  char *display = malloc(strlen(type) + strlen(name) + strlen(par_type) + 4);
+  strcpy(display, type);
+  strcat(display, " ");
+  strcat(display, name);
+  if(get_kind(index) == FUN) {
+    strcat(display, "(");
+    strcat(display, par_type);
+    strcat(display, ")");
+  }
+  return display;
 }
 
 void clear_symbols(int begin_index) {

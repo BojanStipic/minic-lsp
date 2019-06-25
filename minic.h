@@ -13,10 +13,8 @@ void parse(cJSON *diagnostics, const char *text);
 
 /*
  * Parse the `text` string and return info about the specified symbol.
- *
- * WARNING: Caller is responsible to free the result.
  */
-char* symbol_info(const char *symbol_name, const char *text);
+cJSON* symbol_info(const char *symbol_name, const char *text);
 
 /*
  * Parse the `text` string and return definition location of the specified symbol.

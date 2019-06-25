@@ -256,7 +256,7 @@ void lsp_hover(int id, const cJSON *params_json) {
   char *text = strdup(buffer.content);
   truncate_string(text, document.line, document.character);
   const char *symbol_name  = extract_last_symbol(text);
-  char *contents = symbol_info(symbol_name, text);
+  cJSON *contents = symbol_info(symbol_name, text);
   free(text);
 
   if(contents == NULL) {
@@ -264,7 +264,7 @@ void lsp_hover(int id, const cJSON *params_json) {
     return;
   }
   cJSON *result = cJSON_CreateObject();
-  cJSON_AddStringToObject(result, "contents", contents);
+  cJSON_AddItemToObject(result, "contents", contents);
   lsp_send_response(id, result);
 }
 

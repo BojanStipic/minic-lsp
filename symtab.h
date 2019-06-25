@@ -59,6 +59,12 @@ void     set_atr2(int index, unsigned atr2);
 unsigned get_atr2(int index);
 void     set_lineno(int index, int lineno);
 int      get_lineno(int index);
+/*
+ * Returns display string of a symbol.
+ *
+ * WARNING: Caller is responsible to free the result.
+ */
+char* get_display(int index);
 
 // Removes elements beginning with the specified index.
 void clear_symbols(int begin_index);
