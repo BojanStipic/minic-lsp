@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "minic.h"
+#include "err_codes.h"
 #include "lsp.h"
 #define MAX_HEADER_FIELD_LEN 100
 
@@ -22,7 +23,7 @@ unsigned long lsp_parse_header(void) {
     fgets(buffer, MAX_HEADER_FIELD_LEN, stdin);
     if(strcmp(buffer, "\r\n") == 0) { // End of header
       if(content_length == 0)
-        exit(1);
+        exit(EXIT_HEADER_INCOMPLETE);
       return content_length;
     }
 
@@ -35,13 +36,13 @@ unsigned long lsp_parse_header(void) {
 }
 
 cJSON* lsp_parse_content(unsigned long content_length) {
-  char *buffer = (char *) malloc(content_length + 1);
+  char *buffer = malloc(content_length + 1);
   if(buffer == NULL)
-    exit(2);
+    exit(EXIT_OUT_OF_MEMORY);
   size_t read_elements = fread(buffer, 1, content_length, stdin);
   if(read_elements != content_length) {
     free(buffer);
-    exit(3);
+    exit(EXIT_IO_ERROR);
   }
   buffer[content_length] = '\0';
 
@@ -49,31 +50,25 @@ cJSON* lsp_parse_content(unsigned long content_length) {
 
   free(buffer);
   if(request == NULL)
-    exit(4);
+    exit(EXIT_PARSE_ERROR);
   return request;
 }
 
 void json_rpc(const cJSON *request) {
-  // Logs for debugging
-  /*
-  char *log_output = cJSON_Print(request);
-  FILE *log = fopen("lsp.log", "a");
-  fwrite(log_output, 1, strlen(log_output), log);
-  fclose(log);
-  */
-  // <== Logs for debugging
-
   const char *method;
-  int id;
+  int id = -1;
 
   const cJSON *method_json = cJSON_GetObjectItem(request, "method");
-  if(cJSON_IsString(method_json) && (method_json->valuestring != NULL)) {
-    method = method_json->valuestring;
+  if(!cJSON_IsString(method_json)) {
+    exit(EXIT_CONTENT_INCOMPLETE);
   }
+  method = method_json->valuestring;
+
   const cJSON *id_json = cJSON_GetObjectItem(request, "id");
   if(cJSON_IsNumber(id_json)) {
     id = id_json->valueint;
   }
+
   const cJSON *params_json = cJSON_GetObjectItem(request, "params");
 
   // RPC
@@ -104,6 +99,35 @@ void json_rpc(const cJSON *request) {
   else if(strcmp(method, "textDocument/completion") == 0) {
     lsp_completion(id, params_json);
   }
+}
+
+// *********************
+// LSP helper functions:
+// *********************
+
+DOCUMENT_LOCATION lsp_parse_document(const cJSON *params_json) {
+  DOCUMENT_LOCATION document;
+
+  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
+  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
+  document.uri = cJSON_GetStringValue(uri_json);
+  if(document.uri == NULL) {
+    exit(EXIT_CONTENT_INCOMPLETE);
+  }
+
+  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
+  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
+  if(!cJSON_IsNumber(line_json)) {
+    exit(EXIT_CONTENT_INCOMPLETE);
+  }
+  document.line = line_json->valueint;
+  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
+  if(!cJSON_IsNumber(character_json)) {
+    exit(EXIT_CONTENT_INCOMPLETE);
+  }
+  document.character = character_json->valueint;
+
+  return document;
 }
 
 void lsp_send_response(int id, cJSON *result) {
@@ -142,16 +166,13 @@ void lsp_send_notification(const char *method, cJSON *params) {
 
 void lsp_initialize(int id) {
   cJSON *result = cJSON_CreateObject();
-  cJSON *capabilities = cJSON_CreateObject();
+  cJSON *capabilities = cJSON_AddObjectToObject(result, "capabilities");
   cJSON_AddNumberToObject(capabilities, "textDocumentSync", 1);
   cJSON_AddBoolToObject(capabilities, "hoverProvider", 1);
   cJSON_AddBoolToObject(capabilities, "definitionProvider", 1);
   cJSON *completion = cJSON_AddObjectToObject(capabilities, "completionProvider");
   cJSON_AddBoolToObject(completion, "resolveProvider", 0);
 
-  // TODO add other capabilities
-
-  cJSON_AddItemToObject(result, "capabilities", capabilities);
   lsp_send_response(id, result);
 }
 
@@ -167,22 +188,16 @@ void lsp_sync_open(const cJSON *params_json) {
   const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
 
   const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  const char *uri = cJSON_GetStringValue(uri_json);
 
-  const char *text = NULL;
   const cJSON *text_json = cJSON_GetObjectItem(text_document_json, "text");
-  if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
-    text = text_json->valuestring;
-  }
+  const char *text = cJSON_GetStringValue(text_json);
 
   if(uri == NULL || text == NULL) {
-    return;
+    exit(EXIT_CONTENT_INCOMPLETE);
   }
 
-  Buffer buffer = open_buffer(uri, text);
+  BUFFER buffer = open_buffer(uri, text);
   lsp_lint(buffer);
 }
 
@@ -190,24 +205,18 @@ void lsp_sync_change(const cJSON *params_json) {
   const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
 
   const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  const char *uri = cJSON_GetStringValue(uri_json);
 
-  const char *text = NULL;
   const cJSON *content_changes_json = cJSON_GetObjectItem(params_json, "contentChanges");
   const cJSON *content_change_json = cJSON_GetArrayItem(content_changes_json, 0);
   const cJSON *text_json = cJSON_GetObjectItem(content_change_json, "text");
-  if(cJSON_IsString(text_json) && (text_json->valuestring != NULL)) {
-    text = text_json->valuestring;
-  }
+  const char *text = cJSON_GetStringValue(text_json);
 
   if(uri == NULL || text == NULL) {
-    return;
+    exit(EXIT_CONTENT_INCOMPLETE);
   }
 
-  Buffer buffer = update_buffer(uri, text);
+  BUFFER buffer = update_buffer(uri, text);
   lsp_lint(buffer);
 }
 
@@ -215,23 +224,19 @@ void lsp_sync_close(const cJSON *params_json) {
   const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
 
   const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  const char *uri = cJSON_GetStringValue(uri_json);
 
   if(uri == NULL) {
-    return;
+    exit(EXIT_CONTENT_INCOMPLETE);
   }
 
   close_buffer(uri);
   lsp_lint_clear(uri);
 }
 
-void lsp_lint(Buffer buffer) {
+void lsp_lint(BUFFER buffer) {
   cJSON *params = cJSON_CreateObject();
-  cJSON *uri = cJSON_CreateStringReference(buffer.uri);
-  cJSON_AddItemToObject(params, "uri", uri);
+  cJSON_AddStringToObject(params, "uri", buffer.uri);
   cJSON *diagnostics = cJSON_AddArrayToObject(params, "diagnostics");
   parse(diagnostics, buffer.content);
   lsp_send_notification("textDocument/publishDiagnostics", params);
@@ -245,28 +250,11 @@ void lsp_lint_clear(const char *uri) {
 }
 
 void lsp_hover(int id, const cJSON *params_json) {
-  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
-  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  DOCUMENT_LOCATION document = lsp_parse_document(params_json);
 
-  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
-  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
-  int line;
-  if(cJSON_IsNumber(line_json)) {
-    line = line_json->valueint;
-  }
-  int character;
-  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
-  if(cJSON_IsNumber(character_json)) {
-    character = character_json->valueint;
-  }
-
-  Buffer buffer = get_buffer(uri);
+  BUFFER buffer = get_buffer(document.uri);
   char *text = strdup(buffer.content);
-  truncate_string(text, line, character);
+  truncate_string(text, document.line, document.character);
   const char *symbol_name  = extract_last_symbol(text);
   char *contents = symbol_info(symbol_name, text);
   free(text);
@@ -281,28 +269,11 @@ void lsp_hover(int id, const cJSON *params_json) {
 }
 
 void lsp_goto_definition(int id, const cJSON *params_json) {
-  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
-  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  DOCUMENT_LOCATION document = lsp_parse_document(params_json);
 
-  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
-  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
-  int line;
-  if(cJSON_IsNumber(line_json)) {
-    line = line_json->valueint;
-  }
-  int character;
-  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
-  if(cJSON_IsNumber(character_json)) {
-    character = character_json->valueint;
-  }
-
-  Buffer buffer = get_buffer(uri);
+  BUFFER buffer = get_buffer(document.uri);
   char *text = strdup(buffer.content);
-  truncate_string(text, line, character);
+  truncate_string(text, document.line, document.character);
   const char *symbol_name  = extract_last_symbol(text);
   int jump_line = symbol_location(symbol_name, text);
   free(text);
@@ -312,7 +283,7 @@ void lsp_goto_definition(int id, const cJSON *params_json) {
     return;
   }
   cJSON *result = cJSON_CreateObject();
-  cJSON_AddStringToObject(result, "uri", uri);
+  cJSON_AddStringToObject(result, "uri", document.uri);
   cJSON *range = cJSON_AddObjectToObject(result, "range");
   cJSON *start_position = cJSON_AddObjectToObject(range, "start");
   cJSON_AddNumberToObject(start_position, "line", jump_line);
@@ -324,28 +295,11 @@ void lsp_goto_definition(int id, const cJSON *params_json) {
 }
 
 void lsp_completion(int id, const cJSON *params_json) {
-  const cJSON *text_document_json = cJSON_GetObjectItem(params_json, "textDocument");
-  const cJSON *uri_json = cJSON_GetObjectItem(text_document_json, "uri");
-  const char *uri = NULL;
-  if(cJSON_IsString(uri_json) && (uri_json->valuestring != NULL)) {
-    uri = uri_json->valuestring;
-  }
+  DOCUMENT_LOCATION document = lsp_parse_document(params_json);
 
-  const cJSON *position_json = cJSON_GetObjectItem(params_json, "position");
-  const cJSON *line_json = cJSON_GetObjectItem(position_json, "line");
-  int line;
-  if(cJSON_IsNumber(line_json)) {
-    line = line_json->valueint;
-  }
-  int character;
-  const cJSON *character_json = cJSON_GetObjectItem(position_json, "character");
-  if(cJSON_IsNumber(character_json)) {
-    character = character_json->valueint;
-  }
-
-  Buffer buffer = get_buffer(uri);
+  BUFFER buffer = get_buffer(document.uri);
   char *text = strdup(buffer.content);
-  truncate_string(text, line, character);
+  truncate_string(text, document.line, document.character);
   const char *symbol_name_part  = extract_last_symbol(text);
   cJSON *result = symbol_completion(symbol_name_part, text);
   free(text);

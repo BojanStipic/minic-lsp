@@ -2,51 +2,53 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "err_codes.h"
 #include "io.h"
 
-Buffer buffers[BUFFER_LENGTH];
-unsigned int first_empty;
+BUFFER buffers[BUFFER_LENGTH];
+unsigned int first_empty_buf;
 
-Buffer open_buffer(const char *uri, const char *content) {
-  if(first_empty >= BUFFER_LENGTH)
-    exit(5);
-  buffers[first_empty].uri = strdup(uri);
-  buffers[first_empty].content = strdup(content);
-  return buffers[first_empty++];
+BUFFER open_buffer(const char *uri, const char *content) {
+  if(first_empty_buf >= BUFFER_LENGTH)
+    exit(EXIT_BUFFERS_FULL);
+  buffers[first_empty_buf].uri = strdup(uri);
+  buffers[first_empty_buf].content = strdup(content);
+  return buffers[first_empty_buf++];
 }
 
-Buffer update_buffer(const char *uri, const char *content) {
-  for(unsigned int i = 0; i < first_empty; i++) {
+BUFFER update_buffer(const char *uri, const char *content) {
+  for(unsigned int i = 0; i < first_empty_buf; i++) {
     if(strcmp(buffers[i].uri, uri) == 0) {
       free(buffers[i].content);
       buffers[i].content = strdup(content);
       return buffers[i];
     }
   }
-  exit(5);
+  exit(EXIT_BUFFER_NOT_OPEN);
 }
 
-Buffer get_buffer(const char *uri) {
-  for(unsigned int i = 0; i < first_empty; i++) {
+BUFFER get_buffer(const char *uri) {
+  for(unsigned int i = 0; i < first_empty_buf; i++) {
     if(strcmp(buffers[i].uri, uri) == 0) {
       return buffers[i];
     }
   }
-  exit(5);
+  exit(EXIT_BUFFER_NOT_OPEN);
 }
 
 void close_buffer(const char *uri) {
-  for(unsigned int i = 0; i < first_empty; i++) {
+  for(unsigned int i = 0; i < first_empty_buf; i++) {
     if(strcmp(buffers[i].uri, uri) == 0) {
       free(buffers[i].uri);
       free(buffers[i].content);
-      for(unsigned int j = i; j < first_empty - 1; j++) {
+      for(unsigned int j = i; j < first_empty_buf - 1; j++) {
         buffers[j] = buffers[j + 1];
       }
-      --first_empty;
+      --first_empty_buf;
       return;
     }
   }
+  exit(EXIT_BUFFER_NOT_OPEN);
 }
 
 void truncate_string(char *text, int line, int character) {

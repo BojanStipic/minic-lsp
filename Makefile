@@ -6,7 +6,7 @@ SRC = $(basename $(COMP))
 # Source files
 COMPILER_BUILD = main.c lex.yy.c $(SRC).tab.c $(SRC).c symtab.c lsp.c io.c
 # Compile dependencies
-COMPILER_DEPENDS = $(COMPILER_BUILD) $(SRC).h defs.h symtab.h lsp.h io.h
+COMPILER_DEPENDS = $(COMPILER_BUILD) $(SRC).h defs.h symtab.h lsp.h io.h err_codes.h
 # Temporary files
 COMPILER_CLEAN = lex.yy.c $(SRC).tab.c $(SRC).tab.h $(SRC).output $(SRC)-lsp *.?~ *.mc~ .make.out* *.asm Makefile~
 # cJSON library

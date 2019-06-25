@@ -1,4 +1,3 @@
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,8 +10,6 @@
 SYMBOL_ENTRY symbol_table[SYMBOL_TABLE_LENGTH];
 int first_empty = 0;
 
-
-// Returns index of the first empty element.
 int get_next_empty_element(void) {
   if(first_empty < SYMBOL_TABLE_LENGTH)
     return first_empty++;
@@ -22,16 +19,10 @@ int get_next_empty_element(void) {
   }
 }
 
-// Returns index of the last occupied element.
 int get_last_element(void) {
   return first_empty-1;
 }
 
-/*
- * Inserts a new symbol (1 row in the table),
- * and returns index of the inserted element.
- * Returns -1 if there is no empty space in the symbol table.
- */
 int insert_symbol(char *name,
     unsigned kind,
     unsigned type,
@@ -48,7 +39,6 @@ int insert_symbol(char *name,
   return index;
 }
 
-// Inserts a literal into the symbol table (if it doesn't already exist).
 int insert_literal(char *str, unsigned type) {
   int idx;
   for(idx = first_empty - 1; idx > FUN_REG; idx--) {
@@ -66,10 +56,6 @@ int insert_literal(char *str, unsigned type) {
   return idx;
 }
 
-/*
- * Returns index of the found element.
- * If the element is not found, returns -1.
- */
 int lookup_symbol(const char *name, unsigned kind) {
   int i;
   for(i = first_empty - 1; i > FUN_REG; i--) {
@@ -159,7 +145,6 @@ int get_lineno(int index) {
   return NO_LINENO;
 }
 
-// Removes elements beginning with the specified index.
 void clear_symbols(int begin_index) {
   int i;
   if(begin_index == first_empty) // Already empty
@@ -181,13 +166,11 @@ void clear_symbols(int begin_index) {
   first_empty = begin_index;
 }
 
-// Removes all elements.
 void clear_symtab(void) {
   first_empty = SYMBOL_TABLE_LENGTH - 1;
   clear_symbols(0);
 }
 
-// Prints all elements.
 void print_symtab(void) {
   static const char *symbol_kinds[] = {
     "NONE", "REG", "LIT", "FUN", "VAR", "PAR" };
@@ -217,7 +200,6 @@ unsigned logarithm2(unsigned value) {
   return 0;
 }
 
-// Initializes the table of symbols.
 void init_symtab(void) {
   clear_symtab();
 
