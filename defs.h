@@ -3,7 +3,8 @@
 
 #define SYMBOL_TABLE_LENGTH   64
 #define NO_ATR                 0
-#define NO_LINENO             -1
+#define NO_RANGE              {-1, -1, -1, -1}
+#define RANGE(x)              {x.first_line, x.first_column, x.last_line, x.last_column}
 #define LAST_WORKING_REG      12
 #define FUN_REG               13
 #define CHAR_BUFFER_LENGTH   128

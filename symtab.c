@@ -28,14 +28,14 @@ int insert_symbol(char *name,
     unsigned type,
     unsigned atr1,
     unsigned atr2,
-    int lineno) {
+    SYMBOL_RANGE range) {
   int index = get_next_empty_element();
   symbol_table[index].name = name;
   symbol_table[index].kind = kind;
   symbol_table[index].type = type;
   symbol_table[index].atr1 = atr1;
   symbol_table[index].atr2 = atr2;
-  symbol_table[index].lineno = lineno;
+  symbol_table[index].range = range;
   return index;
 }
 
@@ -52,7 +52,8 @@ int insert_literal(char *str, unsigned type) {
   if(((type==INT) && (num<INT_MIN || num>INT_MAX) )
     || ((type==UINT) && (num<0 || num>UINT_MAX)) )
       err("literal out of range");
-  idx = insert_symbol(str, LIT, type, NO_ATR, NO_ATR, NO_LINENO);
+  SYMBOL_RANGE no_range = NO_RANGE;
+  idx = insert_symbol(str, LIT, type, NO_ATR, NO_ATR, no_range);
   return idx;
 }
 
@@ -133,15 +134,16 @@ unsigned get_atr2(int index) {
   return NO_ATR;
 }
 
-void set_lineno(int index, int lineno) {
+void set_range(int index, SYMBOL_RANGE range) {
   if(index > -1 && index < SYMBOL_TABLE_LENGTH)
-    symbol_table[index].lineno = lineno;
+    symbol_table[index].range = range;
 }
 
-int get_lineno(int index) {
+SYMBOL_RANGE get_range(int index) {
   if(index > -1 && index < SYMBOL_TABLE_LENGTH)
-    return symbol_table[index].lineno;
-  return NO_LINENO;
+    return symbol_table[index].range;
+  SYMBOL_RANGE no_range = NO_RANGE;
+  return no_range;
 }
 
 char* get_display(int index) {
@@ -184,7 +186,8 @@ void clear_symbols(int begin_index) {
     symbol_table[i].type = NO_TYPE;
     symbol_table[i].atr1 = NO_ATR;
     symbol_table[i].atr2 = NO_TYPE;
-    symbol_table[i].lineno = NO_LINENO;
+    SYMBOL_RANGE no_range = NO_RANGE;
+    symbol_table[i].range = no_range;
   }
   first_empty = begin_index;
 }
@@ -230,6 +233,7 @@ void init_symtab(void) {
   char s[4];
   for(i = 0; i < 14; i++) {
     sprintf(s, "%%%d", i);
-    insert_symbol(strdup(s), REG, NO_TYPE, NO_ATR, NO_ATR, NO_LINENO);
+    SYMBOL_RANGE no_range = NO_RANGE;
+    insert_symbol(strdup(s), REG, NO_TYPE, NO_ATR, NO_ATR, no_range);
   }
 }

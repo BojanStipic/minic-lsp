@@ -19,7 +19,7 @@ cJSON* symbol_info(const char *symbol_name, const char *text);
 /*
  * Parse the `text` string and return definition location of the specified symbol.
  */
-int symbol_location(const char *symbol_name, const char *text);
+cJSON* symbol_location(const char *symbol_name, const char *text);
 
 /*
  * Parse the `text` string and return all completions for the specified name part.

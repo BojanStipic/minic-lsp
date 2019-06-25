@@ -275,22 +275,16 @@ void lsp_goto_definition(int id, const cJSON *params_json) {
   char *text = strdup(buffer.content);
   truncate_string(text, document.line, document.character);
   const char *symbol_name  = extract_last_symbol(text);
-  int jump_line = symbol_location(symbol_name, text);
+  cJSON *range = symbol_location(symbol_name, text);
   free(text);
 
-  if(jump_line == -1) {
+  if(range == NULL) {
     lsp_send_response(id, NULL);
     return;
   }
   cJSON *result = cJSON_CreateObject();
   cJSON_AddStringToObject(result, "uri", document.uri);
-  cJSON *range = cJSON_AddObjectToObject(result, "range");
-  cJSON *start_position = cJSON_AddObjectToObject(range, "start");
-  cJSON_AddNumberToObject(start_position, "line", jump_line);
-  cJSON_AddNumberToObject(start_position, "character", 0);
-  cJSON *end_position = cJSON_AddObjectToObject(range, "end");
-  cJSON_AddNumberToObject(end_position, "line", jump_line);
-  cJSON_AddNumberToObject(end_position, "character", 0);
+  cJSON_AddItemToObject(result, "range", range);
   lsp_send_response(id, result);
 }
 

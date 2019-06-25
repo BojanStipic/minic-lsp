@@ -62,8 +62,10 @@ function
   : type _ID
       {
         fun_idx = lookup_symbol($2, FUN);
-        if(fun_idx == -1)
-          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, yylineno);
+        if(fun_idx == -1) {
+          SYMBOL_RANGE range = RANGE(@2);
+          fun_idx = insert_symbol($2, FUN, $1, NO_ATR, NO_ATR, range);
+        }
         else
           err("redefinition of function '%s'", $2);
       }
@@ -85,7 +87,8 @@ parameter
 
   | type _ID
       {
-        insert_symbol($2, PAR, $1, 1, NO_ATR, yylineno);
+        SYMBOL_RANGE range = RANGE(@2);
+        insert_symbol($2, PAR, $1, 1, NO_ATR, range);
         set_atr1(fun_idx, 1);
         set_atr2(fun_idx, $1);
       }
@@ -103,8 +106,10 @@ variable_list
 variable
   : type _ID _SEMICOLON
       {
-        if(lookup_symbol($2, VAR|PAR) == -1)
-           insert_symbol($2, VAR, $1, ++var_num, NO_ATR, yylineno);
+        if(lookup_symbol($2, VAR|PAR) == -1) {
+          SYMBOL_RANGE range = RANGE(@2);
+          insert_symbol($2, VAR, $1, ++var_num, NO_ATR, range);
+        }
         else
            err("redefinition of '%s'", $2);
       }

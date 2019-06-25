@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "symtab.h"
 #include "minic.h"
+#include "minic.tab.h"
 
 extern int yylineno;
 int yyparse(void);
@@ -24,11 +25,11 @@ int yyerror(const char *text) {
   // Range
   cJSON *range = cJSON_AddObjectToObject(diagnostic, "range");
   cJSON *start_position = cJSON_AddObjectToObject(range, "start");
-  cJSON_AddNumberToObject(start_position, "line", yylineno);
+  cJSON_AddNumberToObject(start_position, "line", yylloc.first_line);
   cJSON_AddNumberToObject(start_position, "character", 0);
   cJSON *end_position = cJSON_AddObjectToObject(range, "end");
-  cJSON_AddNumberToObject(end_position, "line", yylineno + 1);
-  cJSON_AddNumberToObject(end_position, "character", 0);
+  cJSON_AddNumberToObject(end_position, "line", yylloc.last_line);
+  cJSON_AddNumberToObject(end_position, "character", yylloc.last_column);
   // Severity
   cJSON_AddNumberToObject(diagnostic, "severity", severity);
   // Message
@@ -62,10 +63,22 @@ cJSON* symbol_info(const char *symbol_name, const char *text) {
   return info;
 }
 
-int symbol_location(const char *symbol_name, const char *text) {
+cJSON* symbol_location(const char *symbol_name, const char *text) {
   parse(NULL, text);
   int idx = lookup_symbol(symbol_name, VAR|PAR|FUN);
-  return get_lineno(idx);
+  if(idx == -1) {
+    return NULL;
+  }
+  SYMBOL_RANGE sym_range = get_range(idx);
+
+  cJSON *range = cJSON_CreateObject();
+  cJSON *start_position = cJSON_AddObjectToObject(range, "start");
+  cJSON_AddNumberToObject(start_position, "line", sym_range.first_line);
+  cJSON_AddNumberToObject(start_position, "character", sym_range.first_column);
+  cJSON *end_position = cJSON_AddObjectToObject(range, "end");
+  cJSON_AddNumberToObject(end_position, "line", sym_range.last_line);
+  cJSON_AddNumberToObject(end_position, "character", sym_range.last_column);
+  return range;
 }
 
 cJSON* symbol_completion(const char *symbol_name_part, const char *text) {

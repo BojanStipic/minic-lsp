@@ -5,11 +5,17 @@
   #include <string.h>
   #include "minic.tab.h"
   #include "defs.h"
+
+  #define YY_USER_ACTION \
+    yylloc.first_line = yylloc.last_line = yylineno; \
+    yylloc.first_column = yylloc.last_column; \
+    yylloc.last_column += yyleng;
 %}
 
 %%
 
-[ \t\n]+             { /* skip */ }
+[ \t]+               { /* skip */ }
+\n+                  { yylloc.last_column = 0; }
 
 "int"                { yylval.i = INT;  return _TYPE; }
 "unsigned"           { yylval.i = UINT; return _TYPE; }
