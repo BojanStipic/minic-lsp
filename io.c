@@ -52,11 +52,15 @@ void close_buffer(const char *uri) {
 }
 
 void truncate_string(char *text, int line, int character) {
-  int position = 0;
+  unsigned int position = 0;
   for(int i = 0; i < line; i++) {
     position += strcspn(text + position, "\n") + 1;
   }
   position += character;
+
+  if(position >= strlen(text)) {
+    return;
+  }
 
   while(isalnum(*(text + position))) {
     ++position;
@@ -65,12 +69,10 @@ void truncate_string(char *text, int line, int character) {
 }
 
 const char* extract_last_symbol(char *text) {
-  unsigned int position = strlen(text) - 1;
-
-  while(isalnum(*(text + position))) {
-    --position;
+  for(unsigned int position = strlen(text) - 1; position > 0; position--) {
+    if(!isalnum(text[position - 1])) {
+      return text + position;
+    }
   }
-  ++position;
-
-  return text + position;
+  return text;
 }
